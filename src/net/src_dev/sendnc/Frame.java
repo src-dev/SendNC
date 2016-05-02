@@ -21,6 +21,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import javax.swing.border.LineBorder;
 import java.awt.Color;
+import javax.swing.SwingConstants;
 
 @SuppressWarnings("serial")
 public class Frame extends JFrame {	
@@ -72,10 +73,12 @@ public class Frame extends JFrame {
 		fileField.setColumns(10);
 		
 		sendButton = new JButton("Send");
+		sendButton.setHorizontalTextPosition(SwingConstants.LEFT);
+		sendButton.setIcon(new ImageIcon(Frame.class.getResource("/toolbarButtonGraphics/navigation/Forward16.gif")));
 		sendButton.setBounds(625, 342, 100, 30);
 		sendButton.setEnabled(false);
 		sendButton.setBackground(SystemColor.controlHighlight);
-		sendButton.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		sendButton.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		sendButton.setIconTextGap(10);
 		getContentPane().add(sendButton);
 		

@@ -25,7 +25,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.filechooser.FileFilter;
 
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
@@ -33,7 +32,7 @@ import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
 
 public class SendNC {
-	public static final String VERSION = "1.0.14";
+	public static final String VERSION = "1.0.18";
 	
 	public static final File APPDATA_DIR = new File(new File(System.getenv("AppData") + "\\SendNC").getAbsolutePath());
 	public static final File SETTINGS_FILE = new File(APPDATA_DIR.getAbsolutePath() + "\\settings.dat");
@@ -41,27 +40,6 @@ public class SendNC {
 	public static final File DEFAULT_DIR = new File("C:\\");	
 	public static final int DEFAULT_TIMEOUT = 2000;
 	public static final Machine NEW_MACHINE = new Machine("New Machine", "COM1", 0, SerialPort.DATABITS_7, SerialPort.PARITY_NONE, SerialPort.STOPBITS_1);	
-	public static final Map<Integer, Integer> BAUD_MAP = new HashMap<Integer, Integer>();
-	{
-		BAUD_MAP.put(0, 110);
-		BAUD_MAP.put(1, 300);
-		BAUD_MAP.put(2, 600);
-		BAUD_MAP.put(3, 1200);
-		BAUD_MAP.put(4, 2400);
-		BAUD_MAP.put(5, 4800);
-		BAUD_MAP.put(6, 9600);
-		BAUD_MAP.put(7, 19200);
-		BAUD_MAP.put(8, 38400);
-		BAUD_MAP.put(9, 115200);
-	}
-	public static final Map<Integer, String> PARITY_MAP = new HashMap<Integer, String>();
-	{
-		PARITY_MAP.put(0, "None");
-		PARITY_MAP.put(1, "Odd");
-		PARITY_MAP.put(2, "Even");
-		PARITY_MAP.put(3, "Mark");
-		PARITY_MAP.put(4, "Space");
-	}
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -160,9 +138,9 @@ public class SendNC {
 			log("------------------------------");
 			log(machine.getName());
 			log("Port: " + machine.getPort());
-			log("Baud Rate: " + BAUD_MAP.get(machine.getBaud()));
+			log("Baud Rate: " + machine.getRealBaud());
 			log("DataBits: " + machine.getDatabits());
-			log("Parity: " + PARITY_MAP.get(machine.getParity()));
+			log("Parity: " + machine.getParityAsString());
 			log("StopBits: " + machine.getStopbits());
 			log("------------------------------");
 		}
@@ -395,17 +373,7 @@ public class SendNC {
 		frame.fileButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				frame.fileChooser.setCurrentDirectory(currentDir);
-				frame.fileChooser.setFileFilter(new FileFilter() {
-					public boolean accept(File f) {
-						if(f.isDirectory()) return true;
-						if(!f.getName().contains(".")) return true;
-						if(f.getName().toLowerCase().endsWith(".nc")) return true;
-						return false;
-					}
-					public String getDescription() {
-						return "Numerical Control (*.nc, No Extension)";
-					}
-				});
+				frame.fileChooser.setFileFilter(new NCFileFilter());
 				int returnVal = frame.fileChooser.showOpenDialog(frame);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					currentDir = frame.fileChooser.getSelectedFile();
@@ -421,7 +389,7 @@ public class SendNC {
 				Machine selectedMachine = machines.get(frame.machinesList.getSelectedIndex());	
 				String selectedName = selectedMachine.getName();
 				String selectedPort = selectedMachine.getPort();
-				int selectedBaud = BAUD_MAP.get(selectedMachine.getBaud());
+				int selectedBaud = selectedMachine.getRealBaud();
 				int selectedDatabits = selectedMachine.getDatabits();
 				int selectedParity = selectedMachine.getParity();
 				int selectedStopbits = selectedMachine.getStopbits();
@@ -431,6 +399,12 @@ public class SendNC {
 				log("");
 				log("Connecting to serial port " + selectedPort + "..");
 				CommPortIdentifier selectedPortIdentifier = portMap.get(selectedPort);
+				if(selectedPortIdentifier == null) {
+					log("ERROR: That port does not exist.");
+					log("------------------------------");
+					log("");
+					return;
+				}
 				SerialPort serialPort;
 				try {
 					CommPort commPort = selectedPortIdentifier.open(selectedName, timeout);

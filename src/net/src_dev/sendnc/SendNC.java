@@ -25,6 +25,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
@@ -32,7 +33,7 @@ import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
 
 public class SendNC {
-	public static final String VERSION = "1.0.13";
+	public static final String VERSION = "1.0.14";
 	
 	public static final File APPDATA_DIR = new File(new File(System.getenv("AppData") + "\\SendNC").getAbsolutePath());
 	public static final File SETTINGS_FILE = new File(APPDATA_DIR.getAbsolutePath() + "\\settings.dat");
@@ -394,6 +395,17 @@ public class SendNC {
 		frame.fileButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				frame.fileChooser.setCurrentDirectory(currentDir);
+				frame.fileChooser.setFileFilter(new FileFilter() {
+					public boolean accept(File f) {
+						if(f.isDirectory()) return true;
+						if(!f.getName().contains(".")) return true;
+						if(f.getName().toLowerCase().endsWith(".nc")) return true;
+						return false;
+					}
+					public String getDescription() {
+						return "Numerical Control (*.nc, No Extension)";
+					}
+				});
 				int returnVal = frame.fileChooser.showOpenDialog(frame);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					currentDir = frame.fileChooser.getSelectedFile();

@@ -45,3 +45,10 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+*.classpath
+.project
+*.prefs
+*.class
+bin/net/src_dev/sendnc/logo.gif
+bin/rxtxSerial.dll
+bin/RXTXcomm.jar
